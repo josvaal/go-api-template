@@ -1,0 +1,27 @@
+CREATE TABLE
+  ACCOUNTS (
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    profile_picture TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+CREATE TABLE
+  SUBSCRIPTIONS (
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    account_id INTEGER NOT NULL,
+    service_name TEXT NOT NULL,
+    plan_name TEXT NOT NULL,
+    billing_frequency TEXT NOT NULL,
+    cost REAL NOT NULL,
+    currency TEXT NOT NULL,
+    icon TEXT NOT NULL,
+    active BOOLEAN DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (account_id) REFERENCES ACCOUNTS (id)
+  );

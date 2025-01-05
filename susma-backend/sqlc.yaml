@@ -1,0 +1,9 @@
+version: "2"
+sql:
+  - engine: "mysql"
+    queries: ["sql/accounts.sql", "sql/subscriptions.sql"]
+    schema: "sql/schema.sql"
+    gen:
+      go:
+        package: "database"
+        out: "database"
