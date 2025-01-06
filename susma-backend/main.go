@@ -4,82 +4,41 @@ import (
 	"context"
 	"database/sql"
 	"log"
-	"reflect"
+	"net/http"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/go-sql-driver/mysql"
-
-	"github.com/josvaal/susma-backend/database"
+	"github.com/josvaal/susma-backend/app/account"
 )
 
-func run() error {
+func run() (*sql.DB, error) {
 	ctx := context.Background()
 
 	db, err := sql.Open("mysql", "root:15022004@/susma?parseTime=true")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	queries := database.New(db)
-
-	// list all authors
-	authors, err := queries.ListAccounts(ctx)
-	if err != nil {
-		return err
-	}
-	log.Println(authors)
-
-	// create an author
-	result, err := queries.CreateAccount(ctx, database.CreateAccountParams{
-		Email:          "josval.personal@gmail.com",
-		PasswordHash:   "15022004",
-		FirstName:      "José",
-		LastName:       "Valentino",
-		ProfilePicture: "",
-	})
-	if err != nil {
-		return err
+	if err := db.PingContext(ctx); err != nil {
+		return nil, err
 	}
 
-	insertedAccountID, err := result.LastInsertId()
-	if err != nil {
-		return err
-	}
-	log.Println(insertedAccountID)
-
-	// get the author we just inserted
-	fetchedAccount, err := queries.GetAccount(ctx, insertedAccountID)
-	if err != nil {
-		return err
-	}
-
-	// prints true
-	log.Println(reflect.DeepEqual(insertedAccountID, fetchedAccount.ID))
-
-	err_q := queries.CreateSubscription(ctx, database.CreateSubscriptionParams{
-		AccountID:        int32(fetchedAccount.ID),
-		ServiceName:      "nesflis",
-		PlanName:         "xd",
-		BillingFrequency: "monthly",
-		Cost:             10.50,
-		Currency:         "S/. ",
-		Icon:             "xd",
-	})
-	if err_q != nil {
-		return err_q
-	}
-
-	suscription, err := queries.GetSubscription(ctx, 1)
-	if err != nil {
-		return err
-	}
-	log.Println(suscription)
-
-	return nil
-
+	return db, nil
 }
 
 func main() {
-	if err := run(); err != nil {
+	db, err := run()
+	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Close()
+
+	log.Println("Conexión a la base de datos establecida correctamente")
+
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Mount("/api", account.NewAccountRouter())
+
+	http.ListenAndServe(":3000", r)
 }
