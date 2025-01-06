@@ -1,9 +1,16 @@
 package account
 
-import "github.com/go-chi/chi/v5"
+import (
+	"database/sql"
+	"net/http"
 
-func NewAccountRouter() *chi.Mux {
+	"github.com/go-chi/chi/v5"
+)
+
+func NewAccountRouter(db *sql.DB) *chi.Mux {
 	accountRouter := chi.NewRouter()
-	accountRouter.Get("/account/register", registerAccount)
+	accountRouter.Post("/account/register", func(w http.ResponseWriter, r *http.Request) {
+		registerAccount(w, r, db)
+	})
 	return accountRouter
 }

@@ -12,6 +12,20 @@ FROM
 WHERE
   id = ?;
 
+-- name: GetAccountByEmail :one
+SELECT
+  id,
+  email,
+  first_name,
+  last_name,
+  profile_picture,
+  created_at,
+  updated_at
+FROM
+  ACCOUNTS
+WHERE
+  email = ?;
+
 -- name: ListAccounts :many
 SELECT
   id,
