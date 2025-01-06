@@ -7,7 +7,7 @@ import (
 
 type Response struct {
 	Message string          `json:"message"`
-	Status  string          `json:"status"`
+	Error   string          `json:"error,omitempty"`
 	Data    json.RawMessage `json:"data,omitempty"`
 }
 
@@ -19,12 +19,12 @@ func SendJSONResponse(w http.ResponseWriter, statusCode int, response interface{
 	}
 }
 
-func ChangeResponseData(response *Response, message, status string, data interface{}) {
+func ChangeResponseData(response *Response, message string, err *string, data interface{}) {
 	if message != "" {
 		response.Message = message
 	}
-	if status != "" {
-		response.Status = status
+	if err != nil {
+		response.Error = *err
 	}
 	if data != nil {
 		dataBytes, err := json.Marshal(data)
@@ -43,6 +43,9 @@ const (
 	ErrorDuplicate  ResponseType = "Duplicado"
 	ErrorPermission ResponseType = "Permiso denegado"
 	ErrorForbidden  ResponseType = "Prohibido"
-	SuccessOk       ResponseType = "Éxito"
-	SuccessCreated  ResponseType = "Creado"
 )
+
+func (rt ResponseType) Pointer() *string {
+	str := string(rt)
+	return &str
+}

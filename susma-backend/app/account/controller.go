@@ -25,7 +25,7 @@ func registerAccount(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	var reqBody RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
-		payload.ChangeResponseData(&response, "Error al recibir los parámetros", string(payload.ErrorCommon), nil)
+		payload.ChangeResponseData(&response, "Error al recibir los parámetros", payload.ErrorCommon.Pointer(), nil)
 		payload.SendJSONResponse(w, http.StatusBadRequest, response)
 		return
 	}
@@ -34,14 +34,14 @@ func registerAccount(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	_, err := queries.GetAccountByEmail(ctx, reqBody.Email)
 	if err == nil {
-		payload.ChangeResponseData(&response, "Este correo ya se encuentra registrado", string(payload.ErrorDuplicate), nil)
+		payload.ChangeResponseData(&response, "Este correo ya se encuentra registrado", payload.ErrorDuplicate.Pointer(), nil)
 		payload.SendJSONResponse(w, http.StatusNotFound, response)
 		return
 	}
 
 	hashPassword, err := utils.HashPassword(reqBody.Password)
 	if err != nil {
-		payload.ChangeResponseData(&response, "Error al procesar la contraseña", string(payload.ErrorServer), nil)
+		payload.ChangeResponseData(&response, "Error al procesar la contraseña", payload.ErrorServer.Pointer(), nil)
 		payload.SendJSONResponse(w, http.StatusInternalServerError, response)
 		return
 	}
@@ -55,14 +55,14 @@ func registerAccount(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	})
 
 	if err != nil {
-		payload.ChangeResponseData(&response, "Error al crear la cuenta", string(payload.ErrorServer), nil)
+		payload.ChangeResponseData(&response, "Error al crear la cuenta", payload.ErrorServer.Pointer(), nil)
 		payload.SendJSONResponse(w, http.StatusInternalServerError, response)
 		return
 	}
 
 	insertedAuthorID, err := result.LastInsertId()
 	if err != nil {
-		payload.ChangeResponseData(&response, "Error al obtener la ID de la cuenta creada", string(payload.ErrorServer), nil)
+		payload.ChangeResponseData(&response, "Error al obtener la ID de la cuenta creada", payload.ErrorServer.Pointer(), nil)
 		payload.SendJSONResponse(w, http.StatusInternalServerError, response)
 		return
 	}
@@ -71,7 +71,7 @@ func registerAccount(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		"id": insertedAuthorID,
 	}
 
-	payload.ChangeResponseData(&response, "Cuenta creada correctamente", string(payload.SuccessCreated), data)
+	payload.ChangeResponseData(&response, "Cuenta creada correctamente", nil, data)
 	payload.SendJSONResponse(w, http.StatusCreated, response)
 }
 
