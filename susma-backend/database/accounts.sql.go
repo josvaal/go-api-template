@@ -11,8 +11,7 @@ import (
 )
 
 const createAccount = `-- name: CreateAccount :execresult
-INSERT INTO
-  ACCOUNTS (
+INSERT INTO ACCOUNTS (
     email,
     password_hash,
     first_name,
@@ -21,8 +20,7 @@ INSERT INTO
     created_at,
     updated_at
   )
-VALUES
-  (
+VALUES (
     ?,
     ?,
     ?,
@@ -52,29 +50,24 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (s
 }
 
 const deleteAccount = `-- name: DeleteAccount :exec
-DELETE FROM ACCOUNTS
-WHERE
-  id = ?
+CALL delete_account (?)
 `
 
-func (q *Queries) DeleteAccount(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteAccount, id)
+func (q *Queries) DeleteAccount(ctx context.Context, AccountID int64) error {
+	_, err := q.db.ExecContext(ctx, deleteAccount, AccountID)
 	return err
 }
 
 const getAccount = `-- name: GetAccount :one
-SELECT
-  id,
+SELECT id,
   email,
   first_name,
   last_name,
   profile_picture,
   created_at,
   updated_at
-FROM
-  ACCOUNTS
-WHERE
-  id = ?
+FROM ACCOUNTS
+WHERE id = ?
 `
 
 type GetAccountRow struct {
@@ -103,18 +96,16 @@ func (q *Queries) GetAccount(ctx context.Context, id int64) (GetAccountRow, erro
 }
 
 const getAccountByEmail = `-- name: GetAccountByEmail :one
-SELECT
-  id,
+SELECT id,
   email,
   first_name,
   last_name,
+  password_hash,
   profile_picture,
   created_at,
   updated_at
-FROM
-  ACCOUNTS
-WHERE
-  email = ?
+FROM ACCOUNTS
+WHERE email = ?
 `
 
 type GetAccountByEmailRow struct {
@@ -122,6 +113,7 @@ type GetAccountByEmailRow struct {
 	Email          string
 	FirstName      string
 	LastName       string
+	PasswordHash   string
 	ProfilePicture string
 	CreatedAt      sql.NullTime
 	UpdatedAt      sql.NullTime
@@ -135,6 +127,7 @@ func (q *Queries) GetAccountByEmail(ctx context.Context, email string) (GetAccou
 		&i.Email,
 		&i.FirstName,
 		&i.LastName,
+		&i.PasswordHash,
 		&i.ProfilePicture,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -143,18 +136,15 @@ func (q *Queries) GetAccountByEmail(ctx context.Context, email string) (GetAccou
 }
 
 const listAccounts = `-- name: ListAccounts :many
-SELECT
-  id,
+SELECT id,
   email,
   first_name,
   last_name,
   profile_picture,
   created_at,
   updated_at
-FROM
-  ACCOUNTS
-ORDER BY
-  created_at DESC
+FROM ACCOUNTS
+ORDER BY created_at DESC
 `
 
 type ListAccountsRow struct {
@@ -198,17 +188,24 @@ func (q *Queries) ListAccounts(ctx context.Context) ([]ListAccountsRow, error) {
 	return items, nil
 }
 
+const resetAutoIncrement = `-- name: ResetAutoIncrement :exec
+ALTER TABLE ACCOUNTS AUTO_INCREMENT = 0
+`
+
+func (q *Queries) ResetAutoIncrement(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, resetAutoIncrement)
+	return err
+}
+
 const updateAccount = `-- name: UpdateAccount :execresult
 UPDATE ACCOUNTS
-SET
-  email = ?,
+SET email = ?,
   password_hash = ?,
   first_name = ?,
   last_name = ?,
   profile_picture = ?,
   updated_at = CURRENT_TIMESTAMP
-WHERE
-  id = ?
+WHERE id = ?
 `
 
 type UpdateAccountParams struct {
