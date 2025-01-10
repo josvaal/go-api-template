@@ -19,5 +19,8 @@ func NewAccountRouter(queries *database.Queries) *chi.Mux {
 	accountRouter.Get("/account/check", func(w http.ResponseWriter, r *http.Request) {
 		checkAuth(w, r)
 	})
+	accountRouter.Get("/account/profile", func(w http.ResponseWriter, r *http.Request) {
+		getProfile(w, r)
+	})
 	return accountRouter
 }

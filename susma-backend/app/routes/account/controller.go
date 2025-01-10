@@ -135,3 +135,24 @@ func checkAuth(w http.ResponseWriter, r *http.Request) {
 	payload.ChangeResponseData(&response, "Correctamente logueado", nil, account)
 	payload.SendJSONResponse(w, http.StatusOK, response)
 }
+
+func getProfile(w http.ResponseWriter, r *http.Request) {
+	response := payload.Response{}
+
+	token := r.Header.Get("Authorization")
+	if token == "" {
+		payload.ChangeResponseData(&response, "Error al obtener los permisos", payload.ErrorPermission.Pointer(), nil)
+		payload.SendJSONResponse(w, http.StatusUnauthorized, response)
+		return
+	}
+
+	account, err := utils.ValidateToken(token)
+	if err != nil {
+		payload.ChangeResponseData(&response, "Token inválido o expirado", payload.ErrorPermission.Pointer(), nil)
+		payload.SendJSONResponse(w, http.StatusUnauthorized, response)
+		return
+	}
+
+	payload.ChangeResponseData(&response, "Correctamente logueado", nil, account)
+	payload.SendJSONResponse(w, http.StatusOK, response)
+}
